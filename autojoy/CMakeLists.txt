@@ -17,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
 )
 
-add_message_files(FILES DetectMsg.msg FILES LidarMsg.msg FILES ControlMsg.msg)
+add_message_files(FILES DetectMsg.msg FILES LidarMsg.msg FILES ControlMsg.msg FILES JoyMsg.msg)
 generate_messages(DEPENDENCIES std_msgs)
 
 
@@ -61,6 +61,10 @@ target_link_libraries(carControl cuda cudart cublas ${catkin_LIBRARIES})
 add_executable(MotorControl src/motorControl.cpp)
 add_dependencies(MotorControl ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(MotorControl cuda cudart cublas ${catkin_LIBRARIES})
+
+add_executable(joyStickControl src/joyStick.cpp)
+add_dependencies(joyStickControl ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(joyStickControl cuda cudart cublas ${catkin_LIBRARIES})
 
 #############
 ## Install ##
