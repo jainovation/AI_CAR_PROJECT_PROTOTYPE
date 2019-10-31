@@ -24,24 +24,8 @@ PCA9685 *pca9685 = new PCA9685();
 
 void joyCallback(const autojoy::JoyMsg::ConstPtr& msg)
 {
-	if(msg->joy_cmd_lr > 0)
-	{
-		printf("joystick: LEFT\n");
-		pca9685->setPWM(STEERING_CHANNEL, 0, servoMid + (90 * msg->joy_cmd_lr));
-		usleep(500);
-	}
-	else if(msg->joy_cmd_lr < 0)
-	{
-		printf("joystick: RIGHT\n");
-		pca9685->setPWM(STEERING_CHANNEL, 0, servoMid + (90 * msg->joy_cmd_lr));
-		usleep(500);
-	}
-	else if(msg->joy_cmd_lr == 0)
-	{
-		printf("joystick: MID\n");
-		pca9685->setPWM(STEERING_CHANNEL, 0, 340);
-		usleep(500);
-	}
+	pca9685->setPWM(STEERING_CHANNEL, 0, servoMid + (90 * msg->joy_cmd_lr));
+	usleep(500);
 
 	if(msg->joy_cmd_fb > 0)
 	{
