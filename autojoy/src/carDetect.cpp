@@ -29,13 +29,6 @@ void carDetection(const darknet_ros_msgs::BoundingBoxes::ConstPtr& msg)
 		cmd = true;
 		timer1 = 0;
 	}
-	/*
-	else if(msg->bounding_boxes[0].Class.compare(target) != 0)
-	{
-		printf("I can't detected\n");
-		cmd = false;
-	}*/
-	
 	//std::cout << "\033[2J\033[1;1H";
 }
 

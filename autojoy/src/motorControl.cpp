@@ -7,6 +7,7 @@
 #include "JHPWMPCA9685.h"
 #include "JHPWMPCA9685.cpp"
 #include <autojoy/ControlMsg.h>
+#include <autojoy/JoyMsg.h>
 
 #define THROTTLE_FULL_REVERSE 204
 #define THROTTLE_NEUTRAL 307
@@ -15,7 +16,59 @@
 #define STEERING_CHANNEL 0
 #define ESC_CHANNEL 1
 
+#define servoMax  430
+#define servoMid  340
+#define servoMin  250
+
 PCA9685 *pca9685 = new PCA9685();
+
+void joyCallback(const autojoy::JoyMsg::ConstPtr& msg)
+{
+	if(msg->joy_cmd_lr > 0)
+	{
+		printf("joystick: LEFT\n");
+		pca9685->setPWM(STEERING_CHANNEL, 0, servoMid + (90 * msg->joy_cmd_lr));
+		usleep(500);
+	}
+	else if(msg->joy_cmd_lr < 0)
+	{
+		printf("joystick: RIGHT\n");
+		pca9685->setPWM(STEERING_CHANNEL, 0, servoMid + (90 * msg->joy_cmd_lr));
+		usleep(500);
+	}
+	else if(msg->joy_cmd_lr == 0)
+	{
+		printf("joystick: MID\n");
+		pca9685->setPWM(STEERING_CHANNEL, 0, 340);
+		usleep(500);
+	}
+
+	if(msg->joy_cmd_fb > 0)
+	{
+		printf("joystick: %lf\n", msg->joy_cmd_fb);
+		pca9685->setPWM(ESC_CHANNEL, 0, 295 - (5 * msg->joy_cmd_fb));
+		usleep(500);
+	}
+	else if(msg->joy_cmd_fb < 0)
+	{
+		printf("joystick: BACK\n");
+		pca9685->setPWM(ESC_CHANNEL, 0, 340);
+		usleep(500);
+	}
+	else if(msg->joy_cmd_fb == 0)
+	{
+		printf("joystick: MID\n");
+		pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
+		usleep(500);
+	}
+
+	if(msg->joy_cmd_br == 1)
+	{
+		printf("reset\n");
+		pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
+		usleep(500);
+	}
+}
 
 void msgCallback(const autojoy::ControlMsg::ConstPtr& msg)
 {
@@ -55,6 +108,7 @@ int main(int argc, char **argv)
 	usleep(10);
 
 	ros::Subscriber Motor_sub = nh.subscribe("Motor_msg", 1, msgCallback);
+	ros::Subscriber Joy_sub = nh.subscribe("joystick_msg", 10, joyCallback);
 
 	ros::spin();
 }
