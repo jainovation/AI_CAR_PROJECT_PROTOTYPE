@@ -8,6 +8,7 @@ autojoy::JoyMsg msg;
 double cmd_lr;
 double cmd_fb;
 int cmd_br;
+int cmd_mode;
 
 void joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
@@ -17,6 +18,7 @@ void joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 	cmd_lr = joy->axes[0];
 	cmd_fb = joy->axes[1];
 	cmd_br = joy->buttons[2];
+	cmd_mode = joy->buttons[1];
 }
 
 void *joy_Pub(void *data)
@@ -28,6 +30,7 @@ void *joy_Pub(void *data)
 		msg.joy_cmd_lr = cmd_lr;
 		msg.joy_cmd_fb = cmd_fb;
 		msg.joy_cmd_br = cmd_br;
+		msg.joy_cmd_mode = cmd_mode;
 
 		joy_pub.publish(msg);
 

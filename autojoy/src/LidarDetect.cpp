@@ -19,9 +19,9 @@ void msgCallback(const sensor_msgs::LaserScan::Ptr& scan)
 
 	for(int i = 0; i < 360; i++)
 	{
-		if((i > 175) && (i < 185))
+		if(((0 <= i) && (i < 5))||((355 <= i) && (i < 360)))
 		{
-			ROS_INFO("DIRECTION: BACK");
+			ROS_INFO("DIRECTIONa: FRONT");
 			if(scan->ranges[i] == 0)
 			{
 				ROS_INFO("I can't detect");

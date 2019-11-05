@@ -22,53 +22,72 @@
 
 PCA9685 *pca9685 = new PCA9685();
 
+int mode = 0;	//mode false -> JoyStick Mode
+				//mode true  ->   Auto   Mode
+int cnt;
+
 void joyCallback(const autojoy::JoyMsg::ConstPtr& msg)
 {
-	pca9685->setPWM(STEERING_CHANNEL, 0, servoMid + (90 * msg->joy_cmd_lr));
-	usleep(500);
-
-	if(msg->joy_cmd_fb > 0)
+	if(msg->joy_cmd_mode == 1)   
 	{
-		printf("joystick: %lf\n", msg->joy_cmd_fb);
-		pca9685->setPWM(ESC_CHANNEL, 0, 295 - (5 * msg->joy_cmd_fb));
-		usleep(500);
-	}
-	else if(msg->joy_cmd_fb < 0)
-	{
-		printf("joystick: BACK\n");
-		pca9685->setPWM(ESC_CHANNEL, 0, 340);
-		usleep(500);
-	}
-	else if(msg->joy_cmd_fb == 0)
-	{
-		printf("joystick: MID\n");
-		pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
-		usleep(500);
+	 	printf("mode change: %d\n", mode);
+		cnt++;
+		if(cnt > 3)
+		{
+		 	mode = ~mode;
+			cnt = 0;
+		}
 	}
 
-	if(msg->joy_cmd_br == 1)
+ 	if(mode == 0)
 	{
-		printf("reset\n");
-		pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
+	 	pca9685->setPWM(STEERING_CHANNEL, 0, servoMid + (-90 * msg->joy_cmd_lr));
 		usleep(500);
+
+		if(msg->joy_cmd_fb > 0)
+		{
+			printf("joystick: %lf\n", msg->joy_cmd_fb);
+			pca9685->setPWM(ESC_CHANNEL, 0, 290 - (10 * msg->joy_cmd_fb));
+			usleep(500);
+		}
+		else if(msg->joy_cmd_fb < 0)
+		{
+			printf("joystick: BACK\n");
+			pca9685->setPWM(ESC_CHANNEL, 0, 370);
+			usleep(500);
+		}
+		else if(msg->joy_cmd_fb == 0)
+		{
+			printf("joystick: MID\n");
+			pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
+			usleep(500);
+		}
+	
+		if(msg->joy_cmd_br == 1)
+		{
+			printf("reset\n");
+			pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
+			usleep(500);
+		}
 	}
 }
 
 void msgCallback(const autojoy::ControlMsg::ConstPtr& msg)
 {
-	if(msg->control_sig == 1)
+ 	if(mode == -1)
 	{
-		printf("go: %d\n",msg->control_sig);
-		pca9685->setPWM(ESC_CHANNEL, 0, 290);
-		sleep(1);
-	}
-	else if(msg->control_sig == 0)
-	{
-		printf("stop: %d\n",msg->control_sig);
-		pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
-		sleep(1);
-		pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
-		sleep(1);
+		if(msg->control_sig == 1)
+		{
+			printf("go: %d\n",msg->control_sig);
+			pca9685->setPWM(ESC_CHANNEL, 0, 290);
+			usleep(500);
+		}
+		else if(msg->control_sig == 0)
+		{
+			printf("stop: %d\n",msg->control_sig);
+			pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
+			usleep(500);
+		}
 	}
 }
 int main(int argc, char **argv)
