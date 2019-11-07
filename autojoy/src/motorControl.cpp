@@ -8,6 +8,7 @@
 #include "JHPWMPCA9685.cpp"
 #include <autojoy/ControlMsg.h>
 #include <autojoy/JoyMsg.h>
+#include "ros_opencv_try/MsgACC.h"
 
 #define THROTTLE_FULL_REVERSE 204
 #define THROTTLE_NEUTRAL 307
@@ -76,13 +77,14 @@ void msgCallback(const autojoy::ControlMsg::ConstPtr& msg)
 {
  	if(mode == -1)
 	{
+	 	/*
 		if(msg->control_sig == 1)
 		{
 			printf("go: %d\n",msg->control_sig);
 			pca9685->setPWM(ESC_CHANNEL, 0, 290);
 			usleep(500);
-		}
-		else if(msg->control_sig == 0)
+		}*/
+	    if(msg->control_sig == 0)
 		{
 			printf("stop: %d\n",msg->control_sig);
 			pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
@@ -90,6 +92,27 @@ void msgCallback(const autojoy::ControlMsg::ConstPtr& msg)
 		}
 	}
 }
+
+int motorMap(int x, int in_min, int in_max, int out_min, int out_max)
+{
+ 	int toReturn = (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min ;
+	
+	// For debugging:
+	// printf("MAPPED %d to: %d\n", x, toReturn);
+
+	return toReturn;
+}
+
+void openCallback(const ros_opencv_try::MsgACC::ConstPtr& msg)
+{
+ 	if(mode == -1)
+	{
+	 	pca9685->setPWM(ESC_CHANNEL, 0, 285);
+		usleep(500);
+		pca9685->setPWM(0, 0, motorMap(msg->acc_cmd, 0, 180, servoMin, servoMax));
+	}
+}
+
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "motorControl");
@@ -111,7 +134,8 @@ int main(int argc, char **argv)
 	usleep(10);
 
 	ros::Subscriber Motor_sub = nh.subscribe("Motor_msg", 1, msgCallback);
-	ros::Subscriber Joy_sub = nh.subscribe("joystick_msg", 10, joyCallback);
+	ros::Subscriber Joy_sub = nh.subscribe("joystick_msg", 1, joyCallback);
+	ros::Subscriber Open_sub = nh.subscribe("logic_msg", 1, openCallback);
 
 	ros::spin();
 }
