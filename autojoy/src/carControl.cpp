@@ -6,14 +6,13 @@
 #include <time.h>
 #include <autojoy/DetectMsg.h>
 #include <autojoy/LidarMsg.h>
+#include "ros_opencv_try/MsgACC.h"
 #include <autojoy/ControlMsg.h>
 #include <pthread.h>
 
-#define STEERING_CHANNEL 0
-#define ESC_CHANNEL 1
-
 int cmd_detect = 0;
 int cmd_lidar = 0;
+int cmd_opencv = 0;
 
 ros::Publisher Control_pub;
 autojoy::ControlMsg msg;
@@ -51,21 +50,29 @@ void cmd_Lidar(const autojoy::LidarMsg::ConstPtr& msg)
 	}
 }
 
+void cmd_openCV(const ros_opencv_try::MsgACC::ConstPtr& msg)
+{
+ 	cmd_opencv = msg->acc_cmd;
+}
+
 void *dc_Control_cmd(void *data)
 {
 	ros::Rate loop_rate(10);
 
 	while(ros::ok())
 	{
-		if((cmd_detect == 1) && (cmd_lidar == 2))
-		{
-			msg.control_sig = 1;
-		}
-		else
+		if((cmd_detect == 1) && (cmd_lidar == 1))
 		{
 			msg.control_sig = 0;
 		}
+		else
+		{
+			msg.control_sig = 1;
+		}
+		msg.angle_sig = cmd_opencv;
 		printf("%d\n", msg.control_sig);
+		printf("%d\n", msg.angle_sig);
+
 		Control_pub.publish(msg);
 		loop_rate.sleep();
 	}
@@ -81,6 +88,7 @@ int main(int argc, char **argv)
 
 	ros::Subscriber detect_cmd_sub = nh.subscribe("Detect_msg", 1, cmd_Detect);
 	ros::Subscriber lidar_cmd_sub = nh.subscribe("Lidar_msg", 1, cmd_Lidar);
+	ros::Subscriber openCV_cmd_sub = nh.subscribe("logic_msg", 1, cmd_openCV);
 
 	Control_pub = nh.advertise<autojoy::ControlMsg>("Motor_msg",1);
 
