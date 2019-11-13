@@ -86,15 +86,19 @@ void msgCallback(const autojoy::ControlMsg::ConstPtr& msg)
 {
  	if(mode == -1)
 	{
-	 	pca9685->setPWM(ESC_CHANNEL, 0, 285);
-		usleep(500);
-		pca9685->setPWM(0, 0, motorMap(msg->angle_sig, 0, 180, servoMin, servoMax));
+	 	
 	    if(msg->control_sig == 0)
 		{
 			printf("stop: %d\n",msg->control_sig);
 			pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
 			usleep(500);
 		}
+	    else if(msg->control_sig == 1)
+	    {
+		pca9685->setPWM(ESC_CHANNEL, 0, 285);
+		usleep(500);
+		pca9685->setPWM(0, 0, motorMap(msg->angle_sig, 0, 180, servoMin, servoMax));
+	    }
 		
 	}
 }
