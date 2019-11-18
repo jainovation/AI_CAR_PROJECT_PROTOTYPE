@@ -57,3 +57,19 @@ target_link_libraries(opencv_subscriber
 add_executable(servoExample src/servoExample.cpp)
 add_dependencies(servoExample ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(servoExample ${catkin_LIBRARIES} )
+
+# hough circle practice
+add_executable(traffic_sign src/traffic_sign.cpp)
+add_dependencies(traffic_sign ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(traffic_sign
+   ${OpenCV_LIBRARIES}
+   ${catkin_LIBRARIES}
+ )
+
+# traffic light 
+add_executable(ros_traffic_light src/ros_traffic_light.cpp)
+add_dependencies(ros_traffic_light ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(ros_traffic_light
+   ${OpenCV_LIBRARIES}
+   ${catkin_LIBRARIES}
+ )
