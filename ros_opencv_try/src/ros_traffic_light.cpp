@@ -39,7 +39,8 @@ void timerCallback(const ros::TimerEvent&)
 
 void traffic_light_detect(const darknet_ros_msgs::BoundingBoxes::ConstPtr& msg)
 {
-	for(int k=0; k < msg->bounding_boxes.size(); k++){
+	for(int k=0; k < msg->bounding_boxes.size(); k++)
+	{
 		if( !msg->bounding_boxes[k].Class.empty() )
 		{
 		//cout<<msg->bounding_boxes[k].Class<<endl;
@@ -86,6 +87,7 @@ void camera_callback(const sensor_msgs::ImageConstPtr& msg)
 	Mat cam_image;
 	image.copyTo(cam_image);
 	
+	/* draw roi */
 /*	vector<Point> src_pts;
 
 	src_pts.push_back( Point(Xmin, Ymin) );
@@ -130,8 +132,10 @@ void camera_callback(const sensor_msgs::ImageConstPtr& msg)
 	cv::waitKey(30);
 
 	int resultPixel = 0;
-	for (int x = 0; x < image_hls.rows; x++){
-		for (int y = 0; y < image_hls.cols; y++){
+	for (int x = 0; x < image_hls.rows; x++)
+	{
+		for (int y = 0; y < image_hls.cols; y++)
+		{
 			if (image_hls.at<uchar>(x, y) == 255)     // white : 255
 				resultPixel++;
 		}
