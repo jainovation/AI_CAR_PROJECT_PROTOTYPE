@@ -39,38 +39,40 @@ void timerCallback(const ros::TimerEvent&)
 
 void traffic_light_detect(const darknet_ros_msgs::BoundingBoxes::ConstPtr& msg)
 {
-	//for(int i=0; i<3; i++){
-		if(msg->bounding_boxes[0].Class.compare(target) == 0)
+	for(int k=0; k < msg->bounding_boxes.size(); k++){
+		if( !msg->bounding_boxes[k].Class.empty() )
 		{
-			printf("==============================================\n");
-			printf("Traffic Light Detected!!!\n");
-			printf("Probability : %f\n",msg->bounding_boxes[0].probability);
-			printf("xmin : %d\n",msg->bounding_boxes[0].xmin);
-			printf("ymin : %d\n",msg->bounding_boxes[0].ymin);
-			printf("xmax : %d\n",msg->bounding_boxes[0].xmax);
-			printf("ymax : %d\n",msg->bounding_boxes[0].ymax);
-			printf("==============================================\n");
-			//std::cout << "\033[2J\033[1;1H"; // clear terminal
+		//cout<<msg->bounding_boxes[k].Class<<endl;
+			if(msg->bounding_boxes[k].Class.compare(target) == 0)
+			{
+				printf("==============================================\n");
+				printf("Traffic Light Detected!!!\n");
+				printf("Probability : %f\n",msg->bounding_boxes[0].probability);
+				printf("xmin : %d\n",msg->bounding_boxes[k].xmin);
+				printf("ymin : %d\n",msg->bounding_boxes[k].ymin);
+				printf("xmax : %d\n",msg->bounding_boxes[k].xmax);
+				printf("ymax : %d\n",msg->bounding_boxes[k].ymax);
+				printf("==============================================\n");
+				//std::cout << "\033[2J\033[1;1H"; // clear terminal
 
-			Xmin = msg->bounding_boxes[0].xmin;
-			Ymin = msg->bounding_boxes[0].ymin;
-			Xmax = msg->bounding_boxes[0].xmax;
-			Ymax = msg->bounding_boxes[0].ymax;
+				Xmin = msg->bounding_boxes[k].xmin;
+				Ymin = msg->bounding_boxes[k].ymin;
+				Xmax = msg->bounding_boxes[k].xmax;
+				Ymax = msg->bounding_boxes[k].ymax;
 
-			cmd = true;
-			timer1 = 0;
+				timer1 = 0;
+			}
+			else
+			{
+				Xmin = 10;
+				Xmax = 20;
+				Ymin = 10;
+				Ymax = 20;
+
+				timer1 = 0;
+			}
 		}
-		else
-		{
-			Xmin = 10;
-			Xmax = 20;
-			Ymin = 10;
-			Ymax = 20;
-
-			cmd = true;
-			timer1 = 0;
-		}
-	//}
+	}
 		
 	//std::cout << "\033[2J\033[1;1H";
 }
@@ -111,8 +113,11 @@ void camera_callback(const sensor_msgs::ImageConstPtr& msg)
 	cv::HoughCircles(image_gray, circles, CV_HOUGH_GRADIENT, 1, 20, 50, 35, 100, 200); 
 	drawHoughCircles(image_roi, image_roi, circles);
 */
-	Scalar red_lower(0, 75, 100); // hls
-	Scalar red_upper(8, 255, 255);
+	Scalar red_lower(0, 0, 0); // hls
+	Scalar red_upper(30, 255, 255);
+	
+	//Scalar red_lower(0, 75, 100); // hls
+	//Scalar red_upper(8, 255, 255);
 
 	Scalar green_lower(10, 100, 10);
 	Scalar green_upper(110, 254, 90);
@@ -124,6 +129,19 @@ void camera_callback(const sensor_msgs::ImageConstPtr& msg)
 	imshow("view", image_hls);
 	cv::waitKey(30);
 
+	int resultPixel = 0;
+	for (int x = 0; x < image_hls.rows; x++){
+		for (int y = 0; y < image_hls.cols; y++){
+			if (image_hls.at<uchar>(x, y) == 255)     // white : 255
+				resultPixel++;
+		}
+	}
+
+	if(resultPixel > 100)
+		cmd = true;
+	else
+		cmd = false;
+
 }
 
 void *TrafficLight_Detect_pub(void *data)
@@ -132,7 +150,7 @@ void *TrafficLight_Detect_pub(void *data)
 
 	while(ros::ok())
 	{
-		msg.detect_cmd = cmd;
+		msg.traffic_light_cmd = cmd;
 		detect_pub.publish(msg);
 
 		loop_rate.sleep();
@@ -144,7 +162,7 @@ int main(int argc, char **argv)
 	pthread_t thread_t;
 	int status;
 
-	ros::init(argc, argv, "carDetect");
+	ros::init(argc, argv, "ros_traffic_light");
 	ros::NodeHandle nh;
 	
 	ros::Timer timer = nh.createTimer(ros::Duration(0.1), timerCallback);
