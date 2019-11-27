@@ -19,23 +19,21 @@ void msgCallback(const sensor_msgs::LaserScan::Ptr& scan)
 
 	for(int i = 0; i < 360; i++)
 	{
-		if((0 <= i) && (i < 30) || ((300 < i) && (i < 318)))
+		if((0 <= i) && (i < 15) || ((300 <= i) && (i <= 315)))
 		{
 			ROS_INFO("DIRECTION: FRONT");
-			if(scan->ranges[i] == 0)
+			if((scan->ranges[i] != 0) && (scan->ranges[i] < 20.0))
 			{
-				ROS_INFO("I can't detect");
-				cmd = 0; // 0: too far or too near
-			}
-			else if(scan->ranges[i] < 1.5)
-			{
-				ROS_INFO("stop -> range[%d]: %lf",i,scan->ranges[i]);
-				cmd = 1; // 1: stop
-			}
-			else
-			{
-				ROS_INFO("Don't stop -> range[%d]: %lf",i,scan->ranges[i]);
-				cmd = 2; // 2: go
+				if(scan->ranges[i] < 1.5)
+				{
+					ROS_INFO("stop -> range[%d]: %lf",i,scan->ranges[i]);
+					cmd = 1; // 1: stop
+				}
+				else
+				{
+					ROS_INFO("Don't stop -> range[%d]: %lf",i,scan->ranges[i]);
+					cmd = 2; // 2: go
+				}
 			}
 		}
 	}

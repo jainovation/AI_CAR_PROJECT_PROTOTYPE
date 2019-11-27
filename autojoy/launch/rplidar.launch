@@ -4,5 +4,6 @@
   <node pkg="rplidar_ros" type="rplidarNode" name="lidar_publisher"/>
   <node pkg="autojoy" type="Lidar_sub" name="Lidar_sub"/>
   <node pkg="autojoy" type="car_sub" name="car_sub"/>
+  <node pkg="autojoy" type="SpeedControl" name="ACC_CAR"/>
   <node pkg="autojoy" type="carControl" name="carControl_cmd" output="screen"/>
 </launch>

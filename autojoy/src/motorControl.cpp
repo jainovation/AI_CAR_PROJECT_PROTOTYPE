@@ -8,6 +8,7 @@
 #include "JHPWMPCA9685.cpp"
 #include <autojoy/ControlMsg.h>
 #include <autojoy/JoyMsg.h>
+//#include <autojoy/carAccMsg.h>
 
 #define THROTTLE_FULL_REVERSE 204
 #define THROTTLE_NEUTRAL 307
@@ -24,7 +25,10 @@ PCA9685 *pca9685 = new PCA9685();
 
 int mode = 0;	//mode false -> JoyStick Mode
 				//mode true  ->   Auto   Mode
+int Acc_mode = 0;
+
 int cnt;
+int cnt_ACC;
 
 int motorMap(int x, int in_min, int in_max, int out_min, int out_max)
 {
@@ -35,6 +39,8 @@ int motorMap(int x, int in_min, int in_max, int out_min, int out_max)
 
 	return toReturn;
 }
+
+int speed = 287;
 
 void joyCallback(const autojoy::JoyMsg::ConstPtr& msg)
 {
@@ -48,7 +54,17 @@ void joyCallback(const autojoy::JoyMsg::ConstPtr& msg)
 			cnt = 0;
 		}
 	}
-
+	if(msg->joy_cmd_Acc == 1)   
+	{
+	 	printf("ACC mode change: %d\n", Acc_mode);
+		cnt_ACC++;
+		if(cnt_ACC > 3)
+		{
+		 	Acc_mode = ~Acc_mode;
+			cnt_ACC = 0;
+		}
+	}
+	
  	if(mode == 0)
 	{
 	 	pca9685->setPWM(STEERING_CHANNEL, 0, servoMid + (-90 * msg->joy_cmd_lr));
@@ -86,7 +102,32 @@ void msgCallback(const autojoy::ControlMsg::ConstPtr& msg)
 {
  	if(mode == -1)
 	{
-	 	
+		printf("Acc_mode: %d\n", Acc_mode);
+ 		if(Acc_mode == -1)
+		{
+		 	printf("ACC MODE ON\n");
+		 	if(msg->cmd_ACC == 1)
+			{
+			 	printf("speed Up\n");
+			 	speed -= 1;
+				if(speed < 280)	speed = 280;
+				usleep(100);
+			}
+			else if(msg->cmd_ACC == 0) 
+			{
+			 	printf("speed Down\n");
+				speed += 1;
+				if(speed > 307)	speed = 307;
+				usleep(100);
+			}
+			else if(msg->cmd_ACC == 2)
+			{
+			 	printf("speed keeping\n");
+				speed = speed;
+				usleep(100);
+			}
+		}
+
 	    if(msg->control_sig == 0)
 		{
 			printf("stop: %d\n",msg->control_sig);
@@ -95,9 +136,12 @@ void msgCallback(const autojoy::ControlMsg::ConstPtr& msg)
 		}
 	    else if(msg->control_sig == 1)
 	    {
-		pca9685->setPWM(ESC_CHANNEL, 0, 285);
-		usleep(500);
-		pca9685->setPWM(0, 0, motorMap(msg->angle_sig, 0, 180, servoMin, servoMax));
+		 	if(Acc_mode == 0)
+			 	speed = 287;
+			pca9685->setPWM(ESC_CHANNEL, 0, speed);
+			printf("speed: %d\n",speed);
+			usleep(200);
+			pca9685->setPWM(0, 0, motorMap(msg->angle_sig, 0, 180, servoMin, servoMax));
 	    }
 		
 	}
@@ -125,6 +169,7 @@ int main(int argc, char **argv)
 
 	ros::Subscriber Motor_sub = nh.subscribe("Motor_msg", 1, msgCallback);
 	ros::Subscriber Joy_sub = nh.subscribe("joystick_msg", 1, joyCallback);
+//	ros::Subscriber Speed_sub = nh.subscribe("carAccMsg", 1, speedCallback);
 
 	ros::spin();
 }

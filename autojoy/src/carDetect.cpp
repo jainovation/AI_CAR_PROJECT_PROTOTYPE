@@ -23,13 +23,16 @@ void timerCallback(const ros::TimerEvent&)
 
 void carDetection(const darknet_ros_msgs::BoundingBoxes::ConstPtr& msg)
 {
-	if(msg->bounding_boxes[0].Class.compare(target) == 0)
+	for(int k=0; k < msg->bounding_boxes.size(); k++)
 	{
-		printf("car Detection!!!\n");
-		cmd = true;
-		timer1 = 0;
+		if(msg->bounding_boxes[k].Class.compare(target) == 0)
+		{
+			printf("car Detection!!!\n");
+			cmd = true;
+			timer1 = 0;
+		}
+		//std::cout << "\033[2J\033[1;1H";
 	}
-	//std::cout << "\033[2J\033[1;1H";
 }
 
 void *Detect_pub(void *data)

@@ -6,6 +6,8 @@
 #include <time.h>
 #include <autojoy/DetectMsg.h>
 #include <autojoy/LidarMsg.h>
+#include <autojoy/TrafficMsg.h>
+#include <autojoy/carAccMsg.h>
 #include "ros_opencv_try/MsgACC.h"
 #include <autojoy/ControlMsg.h>
 #include <pthread.h>
@@ -13,32 +15,25 @@
 int cmd_detect = 0;
 int cmd_lidar = 0;
 int cmd_opencv = 0;
+int cmd_trafficlight = 0;
+int cmd_acc = 0;
 
 ros::Publisher Control_pub;
 autojoy::ControlMsg msg;
 
+void cmd_Traffic(const autojoy::TrafficMsg::ConstPtr& msg)
+{
+	msg->traffic_cmd == true? cmd_trafficlight = 1 : cmd_trafficlight = 0;
+}
+
 void cmd_Detect(const autojoy::DetectMsg::ConstPtr& msg)
 {
-	if(msg->detect_cmd == false)
-	{
-		printf("I can't Detect(Yolo)\n");
-		cmd_detect = 0;
-	}
-	else if(msg->detect_cmd == true)
-	{
-		printf("Car detect!!!!!!\n");
-		cmd_detect = 1;
-	}
+ 	msg->detect_cmd == false ? cmd_detect = 0 : cmd_detect = 1;
 }
 
 void cmd_Lidar(const autojoy::LidarMsg::ConstPtr& msg)
 {
-	if(msg->lidar_cmd == 0)
-	{
-		printf("I can't Detect(LIDAR)\n");
-		cmd_lidar = 0;
-	}
-	else if(msg->lidar_cmd == 1)
+	if(msg->lidar_cmd == 1)
 	{
 		printf("Lidar detect!!!!!!\n");
 		cmd_lidar = 1;
@@ -55,21 +50,37 @@ void cmd_openCV(const ros_opencv_try::MsgACC::ConstPtr& msg)
  	cmd_opencv = msg->acc_cmd;
 }
 
+void cmd_Acc(const autojoy::carAccMsg::ConstPtr& msg)
+{
+ 	cmd_acc = msg->speed_cmd;
+}
+
 void *dc_Control_cmd(void *data)
 {
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(20);
 
 	while(ros::ok())
 	{
-		if((cmd_detect == 1) && (cmd_lidar == 1))
+		if(cmd_trafficlight == 0)
+		{				
+			if((cmd_detect == 1) && (cmd_lidar == 1))
+			{
+				msg.control_sig = 0;
+			}
+			else
+			{
+				msg.control_sig = 1;
+			}
+		}
+		else if(cmd_trafficlight ==1)
 		{
 			msg.control_sig = 0;
 		}
-		else
-		{
-			msg.control_sig = 1;
-		}
+
+		printf("control_sig = %d\n", msg.control_sig);
 		msg.angle_sig = cmd_opencv;
+		msg.cmd_ACC = cmd_acc;
+
 		printf("%d\n", msg.control_sig);
 		printf("%d\n", msg.angle_sig);
 
@@ -85,10 +96,11 @@ int main(int argc, char **argv)
 
 	ros::init(argc, argv, "carControl");
 	ros::NodeHandle nh;
-
+	ros::Subscriber traffic_cmd_sub = nh.subscribe("Traffic_msg", 1, cmd_Traffic);
 	ros::Subscriber detect_cmd_sub = nh.subscribe("Detect_msg", 1, cmd_Detect);
 	ros::Subscriber lidar_cmd_sub = nh.subscribe("Lidar_msg", 1, cmd_Lidar);
 	ros::Subscriber openCV_cmd_sub = nh.subscribe("logic_msg", 1, cmd_openCV);
+	ros::Subscriber ACC_cmd_sub = nh.subscribe("carAccMsg", 1, cmd_Acc);
 
 	Control_pub = nh.advertise<autojoy::ControlMsg>("Motor_msg",1);
 
