@@ -56,8 +56,8 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg) // Subscriber node
       vector<Point> src_pts, dst_pts;
       vector<Vec4i> lines;
 
-      src_pts.push_back(Point(width*0, height*0.5));
-      src_pts.push_back(Point(width*1, height*0.5));
+      src_pts.push_back(Point(width*0.05, height*0.5));
+      src_pts.push_back(Point(width*0.95, height*0.5));
       src_pts.push_back(Point(width*1, height*1));
       src_pts.push_back(Point(width*0, height*1));
 
@@ -132,7 +132,7 @@ cv::imshow("whiteyellow", result);
 //
   
       cv::imshow("view", result);
-      cv::waitKey(30);
+      cv::waitKey(1);
 //    }
   }
   catch (cv_bridge::Exception& e)
@@ -143,10 +143,10 @@ cv::imshow("whiteyellow", result);
 
 void *test(void *data) // Publisher node
 {
-    ros::Rate loop_rate(30);
+    ros::Rate loop_rate(20);
   while (ros::ok())
   {
-    if(abs(distance_result) < 25)  // ignore distance_result under 25
+    if(abs(distance_result) < 15)  // ignore distance_result under 25
         msg.acc_cmd = 90;          // Neutral point : 90 degrees
     else{
         msg.acc_cmd = distance_result * Kp + 90;  // PID control term with saturation

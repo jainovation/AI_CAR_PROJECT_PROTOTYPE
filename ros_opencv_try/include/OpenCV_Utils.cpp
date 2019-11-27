@@ -776,11 +776,18 @@ int lineFittingForPerspectiveImage(Mat &image, Mat &result, vector<Vec4i> &lines
         line(result, Point(min_x_right, min_y), Point(max_x_right, max_y), color, thickness);
         heading_x = int(0.5 *(min_x_left + min_x_right));
     }
+
+/* donghwan */
+    if (left.empty() && right.empty())
+    {
+	heading_x = middle_x;
+    }
+
     line(result, Point(middle_x,0), Point(middle_x,height), Scalar(0, 0, 255), 5);
     int distance = middle_x - heading_x;
     if(distance != 0)
     {
-        drawRect(result, result, Point(middle_x, 0), Point(heading_x, 50), Scalar(0, 0, 255), -1);
+        drawRect(result, result, Point(middle_x, 0), Point(heading_x, 50), Scalar(0, 50, 255), -1);
     }
     return distance;
 }

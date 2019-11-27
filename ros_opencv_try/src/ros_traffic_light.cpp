@@ -2,7 +2,7 @@
 #include "darknet_ros_msgs/BoundingBoxes.h"
 #include "darknet_ros_msgs/BoundingBox.h"
 #include <pthread.h>
-#include <autojoy/DetectMsg.h>
+#include <autojoy/TrafficMsg.h>
 #include <stdlib.h>
 
 #include <cv_bridge/cv_bridge.h>
@@ -20,7 +20,7 @@ using namespace cv;
 using namespace std;
 
 ros::Publisher detect_pub;
-autojoy::DetectMsg msg;
+autojoy::TrafficMsg msg;
 std::string target = "traffic light";
 cv::Mat image;
 
@@ -65,10 +65,10 @@ void traffic_light_detect(const darknet_ros_msgs::BoundingBoxes::ConstPtr& msg)
 			}
 			else
 			{
-				Xmin = 10;
-				Xmax = 20;
-				Ymin = 10;
-				Ymax = 20;
+				Xmin = 0;
+				Xmax = 1;
+				Ymin = 0;
+				Ymax = 1;
 
 				timer1 = 0;
 			}
@@ -154,7 +154,7 @@ void *TrafficLight_Detect_pub(void *data)
 
 	while(ros::ok())
 	{
-		msg.traffic_light_cmd = cmd;
+		msg.traffic_cmd = cmd;
 		detect_pub.publish(msg);
 
 		loop_rate.sleep();
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
 	image_transport::Subscriber sub = it.subscribe("/camera/image_raw", 1, camera_callback);	
 
 	
-	detect_pub = nh.advertise<autojoy::DetectMsg>("Detect_msg",1);
+	detect_pub = nh.advertise<autojoy::TrafficMsg>("Traffic_msg",1);
 
 	if(pthread_create(&thread_t, NULL, TrafficLight_Detect_pub, (void*) 0) < 0)
 	{
