@@ -9,7 +9,7 @@
 #include <autojoy/TrafficMsg.h>
 #include <autojoy/carAccMsg.h>
 #include "ros_opencv_try/MsgACC.h"
-#include <autojoy/ControlMsg.h>
+#include <autojoy/Motor_msg.h>
 #include <pthread.h>
 
 int cmd_detect = 0;
@@ -19,7 +19,7 @@ int cmd_trafficlight = 0;
 int cmd_acc = 0;
 
 ros::Publisher Control_pub;
-autojoy::ControlMsg msg;
+autojoy::Motor_msg msg;
 
 void cmd_Traffic(const autojoy::TrafficMsg::ConstPtr& msg)
 {
@@ -76,8 +76,8 @@ void *dc_Control_cmd(void *data)
 		{
 			msg.control_sig = 0;
 		}
-
-		printf("control_sig = %d\n", msg.control_sig);
+		
+		printf("speed_cmd =  %d\n", cmd_acc);
 		msg.angle_sig = cmd_opencv;
 		msg.cmd_ACC = cmd_acc;
 
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 	ros::Subscriber openCV_cmd_sub = nh.subscribe("logic_msg", 1, cmd_openCV);
 	ros::Subscriber ACC_cmd_sub = nh.subscribe("carAccMsg", 1, cmd_Acc);
 
-	Control_pub = nh.advertise<autojoy::ControlMsg>("Motor_msg",1);
+	Control_pub = nh.advertise<autojoy::Motor_msg>("Motor_msg",1);
 
 	if(pthread_create(&thread_t, NULL, dc_Control_cmd, (void*) 0) < 0)
 	{

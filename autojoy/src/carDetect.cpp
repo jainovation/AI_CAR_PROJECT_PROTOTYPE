@@ -55,7 +55,6 @@ int main(int argc, char **argv)
 
 	ros::init(argc, argv, "carDetect");
 	ros::NodeHandle nh;
-	
 	ros::Timer timer = nh.createTimer(ros::Duration(0.1), timerCallback);
 	ros::Subscriber car_sub = nh.subscribe("/darknet_ros/bounding_boxes",1, carDetection);
 	

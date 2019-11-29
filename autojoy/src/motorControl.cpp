@@ -6,9 +6,8 @@
 #include <time.h>
 #include "JHPWMPCA9685.h"
 #include "JHPWMPCA9685.cpp"
-#include <autojoy/ControlMsg.h>
+#include <autojoy/Motor_msg.h>
 #include <autojoy/JoyMsg.h>
-//#include <autojoy/carAccMsg.h>
 
 #define THROTTLE_FULL_REVERSE 204
 #define THROTTLE_NEUTRAL 307
@@ -72,21 +71,21 @@ void joyCallback(const autojoy::JoyMsg::ConstPtr& msg)
 
 		if(msg->joy_cmd_fb > 0)
 		{
-			printf("joystick: %lf\n", msg->joy_cmd_fb);
+			printf("joystick: FRONT\n");
 			pca9685->setPWM(ESC_CHANNEL, 0, 290 - (10 * msg->joy_cmd_fb));
-			usleep(500);
+			usleep(100);
 		}
 		else if(msg->joy_cmd_fb < 0)
 		{
 			printf("joystick: BACK\n");
 			pca9685->setPWM(ESC_CHANNEL, 0, 370);
-			usleep(500);
+			usleep(100);
 		}
 		else if(msg->joy_cmd_fb == 0)
 		{
 			printf("joystick: MID\n");
 			pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
-			usleep(500);
+			usleep(100);
 		}
 	
 		if(msg->joy_cmd_br == 1)
@@ -94,11 +93,13 @@ void joyCallback(const autojoy::JoyMsg::ConstPtr& msg)
 			printf("reset\n");
 			pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
 			usleep(500);
+			pca9685->setPWM(ESC_CHANNEL, 0, 409);
+			usleep(500);
 		}
 	}
 }
 
-void msgCallback(const autojoy::ControlMsg::ConstPtr& msg)
+void msgCallback(const autojoy::Motor_msg::ConstPtr& msg)
 {
  	if(mode == -1)
 	{
@@ -132,6 +133,8 @@ void msgCallback(const autojoy::ControlMsg::ConstPtr& msg)
 		{
 			printf("stop: %d\n",msg->control_sig);
 			pca9685->setPWM(ESC_CHANNEL, 0, THROTTLE_NEUTRAL);
+			usleep(500);
+			pca9685->setPWM(ESC_CHANNEL, 0, 409);
 			usleep(500);
 		}
 	    else if(msg->control_sig == 1)
@@ -169,7 +172,6 @@ int main(int argc, char **argv)
 
 	ros::Subscriber Motor_sub = nh.subscribe("Motor_msg", 1, msgCallback);
 	ros::Subscriber Joy_sub = nh.subscribe("joystick_msg", 1, joyCallback);
-//	ros::Subscriber Speed_sub = nh.subscribe("carAccMsg", 1, speedCallback);
 
 	ros::spin();
 }

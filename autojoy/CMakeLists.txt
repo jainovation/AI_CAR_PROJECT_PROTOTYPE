@@ -17,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
 )
 
-add_message_files(FILES DetectMsg.msg FILES LidarMsg.msg FILES ControlMsg.msg FILES JoyMsg.msg FILES TrafficMsg.msg FILES carAccMsg.msg)
+add_message_files(FILES DetectMsg.msg FILES LidarMsg.msg FILES Motor_msg.msg FILES JoyMsg.msg FILES TrafficMsg.msg FILES carAccMsg.msg)
 generate_messages(DEPENDENCIES std_msgs)
 
 
